@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { Toaster } from 'sonner';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
@@ -7,9 +8,10 @@ import './globals.css';
 import { SessionProvider } from 'next-auth/react';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chat.vercel.ai'),
-  title: 'Next.js Chatbot Template',
-  description: 'Next.js chatbot template using the AI SDK.',
+  metadataBase: new URL('https://aetheriapro.vercel.app'),
+  title: 'Aetheria Pro',
+  description:
+    'Aetheria is your all-in-one AI assistant for productivity, creativity, and collaboration. Chat with multiple AI models, manage documents, automate tasks, and unlock advanced features—all in a seamless, modern workspace.',
 };
 
 export const viewport = {
@@ -69,6 +71,9 @@ export default async function RootLayout({
             __html: THEME_COLOR_SCRIPT,
           }}
         />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
       </head>
       <body className="antialiased">
         <ThemeProvider
