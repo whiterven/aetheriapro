@@ -80,7 +80,7 @@ function PureChatHeader({
           target="_noblank"
         >
           <VercelIcon size={16} />
-          Login/Signup
+          Login
         </Link>
       </Button>
     </header>
