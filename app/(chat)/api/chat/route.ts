@@ -95,9 +95,16 @@ export async function POST(request: Request) {
     const chat = await getChatById({ id });
 
     if (!chat) {
-      const title = await generateTitleFromUserMessage({
-        message,
-      });
+      let title = 'New Chat'; // Default title in case of error
+      try {
+        const generatedTitle = await generateTitleFromUserMessage({
+          message,
+        });
+        title = generatedTitle;
+      } catch (error) {
+        console.error('Failed to generate chat title:', error);
+        // Continue with default title
+      }
 
       await saveChat({
         id,
@@ -219,9 +226,10 @@ export async function POST(request: Request) {
           sendReasoning: true,
         });
       },
-      onError: () => {
-        return 'Oops, an error occurred!';
-      },
+          onError: (error) => {
+            console.error('Error during streamText:', error);
+            return 'Oops, an error occurred!';
+          },
     });
 
     const streamContext = getStreamContext();
@@ -233,17 +241,21 @@ export async function POST(request: Request) {
     } else {
       return new Response(stream);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Unhandled error in POST handler:', error);
-    
+
+    if (!(error instanceof ChatSDKError)) {
+      console.error('Details:', error.message, error.stack);
+    }
+
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }
-    
+
     // Return a generic error response for any other unhandled errors
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }), 
-      { 
+      JSON.stringify({ error: 'Internal server error' }),
+      {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       }
