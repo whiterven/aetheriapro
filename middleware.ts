@@ -24,10 +24,13 @@ export async function middleware(request: NextRequest) {
   });
 
   if (!token) {
-    const redirectUrl = encodeURIComponent(request.url);
+    // Get the base URL from the request
+    const baseUrl = new URL(request.url).origin;
+    const currentPath = new URL(request.url).pathname;
+    const redirectUrl = encodeURIComponent(`${baseUrl}${currentPath}`);
 
     return NextResponse.redirect(
-      new URL(`/api/auth/guest?redirectUrl=${redirectUrl}`, request.url),
+      new URL(`/api/auth/guest?redirectUrl=${redirectUrl}`, baseUrl),
     );
   }
 

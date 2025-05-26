@@ -1,6 +1,11 @@
 import { motion } from 'framer-motion';
+import { useSession } from 'next-auth/react';
 
 export const Greeting = () => {
+  const { data: session } = useSession();
+  const isGuest = !session?.user || session.user.type === 'guest';
+  const firstName = session?.user?.firstName;
+
   return (
     <div
       key="overview"
@@ -13,7 +18,7 @@ export const Greeting = () => {
         transition={{ delay: 0.5 }}
         className="text-2xl font-semibold"
       >
-        Hello there!
+        {isGuest ? 'Hello there!' : `Hello, ${firstName || 'there'}!`}
       </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 10 }}

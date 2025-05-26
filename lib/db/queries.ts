@@ -39,7 +39,13 @@ import { ChatSDKError } from '../errors';
 // https://authjs.dev/reference/adapter/drizzle
 
 // biome-ignore lint: Forbidden non-null assertion.
-const client = postgres(process.env.POSTGRES_URL!);
+const client = postgres(process.env.POSTGRES_URL!, {
+  ssl: {
+    rejectUnauthorized: false
+  },
+  connect_timeout: 10
+});
+
 const db = drizzle(client);
 
 export async function getUser(email: string): Promise<Array<User>> {
@@ -67,6 +73,11 @@ export async function createUser(
       password: hashedPassword,
       firstName,
       lastName
+    }).returning({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName
     });
   } catch (error) {
     throw new ChatSDKError('bad_request:database', 'Failed to create user');

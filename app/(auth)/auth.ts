@@ -43,27 +43,36 @@ export const {
   ...authConfig,
   providers: [
     Credentials({
-      credentials: {},
-      async authorize({ email, password }: any) {
+      credentials: {},      async authorize({ email, password }: any) {
+        console.log('Auth: Starting authorization for email:', email);
         const users = await getUser(email);
 
         if (users.length === 0) {
+          console.log('Auth: No user found with email:', email);
           await compare(password, DUMMY_PASSWORD);
           return null;
         }
 
         const [user] = users;
+        console.log('Auth: Found user:', { ...user, password: undefined });
 
         if (!user.password) {
+          console.log('Auth: User has no password');
           await compare(password, DUMMY_PASSWORD);
           return null;
-        }
-
-        const passwordsMatch = await compare(password, user.password);
-
+        }        const passwordsMatch = await compare(password, user.password);
+        console.log('Auth: Password match result:', passwordsMatch);
         if (!passwordsMatch) return null;
 
-        return { ...user, type: 'regular' };
+        const userResult = {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          type: 'regular' as const
+        };
+        console.log('Auth: Returning user:', userResult);
+        return userResult;
       },
     }),
     Credentials({
