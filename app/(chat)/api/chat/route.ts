@@ -241,7 +241,13 @@ export async function POST(request: Request) {
     }
     
     // Return a generic error response for any other unhandled errors
-    return new ChatSDKError('internal_server_error:chat').toResponse();
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }), 
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }
 
@@ -347,7 +353,13 @@ export async function GET(request: Request) {
     }
     
     // Return a generic error response for any other unhandled errors
-    return new ChatSDKError('internal_server_error:chat').toResponse();
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }), 
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }
 
@@ -387,6 +399,12 @@ export async function DELETE(request: Request) {
     }
     
     // Return a generic error response for any other unhandled errors
-    return new ChatSDKError('internal_server_error:chat').toResponse();
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }), 
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }
