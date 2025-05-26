@@ -8,25 +8,29 @@ import type { DefaultJWT } from 'next-auth/jwt';
 
 export type UserType = 'guest' | 'regular';
 
-declare module 'next-auth' {
-  interface Session extends DefaultSession {
+declare module 'next-auth' {  interface Session extends DefaultSession {
     user: {
       id: string;
       type: UserType;
+      firstName?: string | null;
+      lastName?: string | null;
     } & DefaultSession['user'];
   }
 
   interface User {
     id?: string;
     email?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
     type: UserType;
   }
 }
 
-declare module 'next-auth/jwt' {
-  interface JWT extends DefaultJWT {
+declare module 'next-auth/jwt' {  interface JWT extends DefaultJWT {
     id: string;
     type: UserType;
+    firstName?: string | null;
+    lastName?: string | null;
   }
 }
 
@@ -71,19 +75,21 @@ export const {
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
+  callbacks: {    async jwt({ token, user }) {
       if (user) {
         token.id = user.id as string;
         token.type = user.type;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
       }
 
       return token;
-    },
-    async session({ session, token }) {
+    },    async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
         session.user.type = token.type;
+        session.user.firstName = token.firstName;
+        session.user.lastName = token.lastName;
       }
 
       return session;

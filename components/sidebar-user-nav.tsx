@@ -58,9 +58,8 @@ export function SidebarUserNav({ user }: { user: User }) {
                   width={24}
                   height={24}
                   className="rounded-full"
-                />
-                <span data-testid="user-email" className="truncate">
-                  {isGuest ? 'Guest' : user?.email}
+                />                <span data-testid="user-email" className="truncate">
+                  {isGuest ? 'Guest' : user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email}
                 </span>
                 <ChevronUp className="ml-auto" />
               </SidebarMenuButton>
