@@ -23,7 +23,12 @@ export const postRequestBodySchema = z.object({
       )
       .optional(),
   }),
-  selectedChatModel: z.enum(['chat-model', 'chat-model-reasoning']),
+  selectedChatModel: z.enum([
+    'chat-model',
+    'chat-model-reasoning',
+    'llama-3.1-8b-instant',
+    'deepseek-r1-distill-llama-70b',
+  ]),
   selectedVisibilityType: z.enum(['public', 'private']),
 });
 
