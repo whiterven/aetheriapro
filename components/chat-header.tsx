@@ -73,15 +73,12 @@ function PureChatHeader({
 
       <Button
         className="bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-zinc-50 dark:text-zinc-900 hidden md:flex py-1.5 px-2 h-fit md:h-[34px] order-4 md:ml-auto"
-        asChild
+        onClick={() => {
+          router.push('/login');
+        }}
       >
-        <Link
-          href="https://aetheriapro.vercel.app/login"
-          target="_noblank"
-        >
-          <VercelIcon size={16} />
-          Login
-        </Link>
+        <VercelIcon size={16} />
+        Login
       </Button>
     </header>
   );

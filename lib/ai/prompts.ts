@@ -58,12 +58,40 @@ export const systemPrompt = ({
   requestHints: RequestHints;
 }) => {
   const requestPrompt = getRequestPromptFromHints(requestHints);
+  const basePrompt = regularPrompt;
 
-  if (selectedChatModel === 'chat-model-reasoning') {
-    return `${regularPrompt}\n\n${requestPrompt}`;
-  } else {
-    return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
-  }
+  // Add model-specific instructions based on capabilities
+  const modelInstructions = (() => {
+    // Models with reasoning capabilities
+    if (selectedChatModel === 'chat-model-reasoning' ||
+        selectedChatModel.startsWith('gpt-4') || 
+        selectedChatModel.includes('claude-4') ||
+        selectedChatModel.includes('gemini-2.5') ||
+        selectedChatModel === 'deepseek-r1-distill-llama-70b') {
+      return `
+Provide detailed step-by-step reasoning for complex queries.
+Break down problems into logical components.
+Give balanced analysis considering multiple perspectives.`;
+    }
+    // OpenAI models get structured output capabilities
+    else if (selectedChatModel.startsWith('gpt-')) {
+      return `
+You can generate structured outputs using JSON or YAML formats.
+For complex data requests, use well-structured formats with clear hierarchies.
+When working with code, you can provide type definitions and schemas.`;
+    }
+    // Google models get multimodal capabilities highlighted
+    else if (selectedChatModel.includes('gemini')) {
+      return `
+You can analyze images and provide detailed visual descriptions.
+Work effectively with both text and visual information.
+Generate multimodal explanations when helpful.`;
+    }
+    return '';
+  })();
+
+  // All models get access to artifacts and tools
+  return `${basePrompt}\n\n${requestPrompt}\n\n${modelInstructions}\n\n${artifactsPrompt}`;
 };
 
 export const codePrompt = `

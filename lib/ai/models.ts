@@ -10,17 +10,17 @@ export const chatModels: Array<ChatModel> = [
   {
     id: 'chat-model',
     name: 'Chat model',
-    description: 'Primary model for all-purpose chat',
+    description: 'Primary model for all-purpose chat with tool support',
   },
   {
     id: 'chat-model-reasoning',
     name: 'Reasoning model',
-    description: 'Uses advanced reasoning',
+    description: 'Uses advanced reasoning and detailed explanations',
   },
   {
-    id: 'llama-3.1-8b-instant',
-    name: 'Llama 3.1 8B Instant',
-    description: 'Groq: Fast, efficient Llama 3.1 8B model.',
+    id: 'meta-llama/llama-4-scout-17b-16e-instruct',
+    name: 'Llama 4 Scout 17B',
+    description: 'Meta: Fast instruction model optimized for chat and tool use',
   },
   {
     id: 'deepseek-r1-distill-llama-70b',
@@ -33,9 +33,19 @@ export const chatModels: Array<ChatModel> = [
     description: 'Google: Fast, multimodal model.',
   },
   {
-    id: 'gemini-1.5-flash',
-    name: 'Gemini 1.5 Flash',
-    description: 'Google: Efficient, multimodal model with a large context window.',
+    id: 'gpt-4-turbo',
+    name: 'GPT-4 Turbo',
+    description: 'OpenAI: Latest GPT-4 model with improved capabilities.',
+  },
+  {
+    id: 'gpt-4.1',
+    name: 'GPT-4.1',
+    description: 'OpenAI: Advanced model with structured output support.',
+  },
+  {
+    id: 'o4-mini',
+    name: 'O4 Mini',
+    description: 'OpenAI: Efficient model with detailed reasoning capabilities.',
   },
   {
     id: 'gemini-2.5-pro-preview-05-06',
