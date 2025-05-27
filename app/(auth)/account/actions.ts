@@ -6,7 +6,6 @@ import { user } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { accountFormSchema } from './schema';
 import { revalidatePath } from 'next/cache';
-import type { User } from '@/lib/db/schema';
 
 export type UpdateProfileResult = {
   success: true;
