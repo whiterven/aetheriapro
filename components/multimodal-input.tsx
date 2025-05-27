@@ -25,9 +25,23 @@ import { SuggestedActions } from './suggested-actions';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowDown } from 'lucide-react';
+import { ArrowDown, AlertTriangleIcon } from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { VisibilityType } from './visibility-selector';
+import { Alert, AlertDescription } from './ui/alert';
+
+export function MessageLimitWarning() {
+  if (process.env.NEXT_PUBLIC_ENABLE_MESSAGE_LIMIT !== "true") return null
+
+  return (
+    <Alert className="text-yellow-800 border-yellow-600 bg-yellow-50 dark:border-yellow-500 dark:bg-yellow-950 dark:text-yellow-100">
+      <AlertTriangleIcon className="size-4" />
+      <AlertDescription>
+        You&apos;ve hit the message limit for this model. Please try again later or start a new chat.
+      </AlertDescription>
+    </Alert>
+  )
+}
 
 function PureMultimodalInput({
   chatId,

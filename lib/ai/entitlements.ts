@@ -8,10 +8,6 @@ interface Entitlements {
 
 export const entitlementsByUserType: Record<UserType, Entitlements> = {
   /*
-   * For users without an account
-   */
-
-  /*
    * For users with an account
    */
   regular: {

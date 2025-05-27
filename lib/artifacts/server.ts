@@ -1,7 +1,9 @@
+//lib/artifacts/server.ts
 import { codeDocumentHandler } from '@/artifacts/code/server';
 import { imageDocumentHandler } from '@/artifacts/image/server';
 import { sheetDocumentHandler } from '@/artifacts/sheet/server';
 import { textDocumentHandler } from '@/artifacts/text/server';
+import { mindmapDocumentHandler } from '@/artifacts/mindmap/server';
 import { ArtifactKind } from '@/components/artifact';
 import { DataStreamWriter } from 'ai';
 import { Document } from '../db/schema';
@@ -94,6 +96,7 @@ export const documentHandlersByArtifactKind: Array<DocumentHandler> = [
   codeDocumentHandler,
   imageDocumentHandler,
   sheetDocumentHandler,
+  mindmapDocumentHandler,
 ];
 
-export const artifactKinds = ['text', 'code', 'image', 'sheet'] as const;
+export const artifactKinds = ['text', 'code', 'image', 'sheet', 'mindmap'] as const;

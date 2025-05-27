@@ -10,6 +10,7 @@ import {
   foreignKey,
   boolean,
 } from 'drizzle-orm/pg-core';
+import type { UserType } from '@/app/(auth)/auth';
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -17,6 +18,7 @@ export const user = pgTable('User', {
   password: varchar('password', { length: 64 }),
   firstName: varchar('firstName', { length: 64 }),
   lastName: varchar('lastName', { length: 64 }),
+  type: varchar('type', { enum: ['regular', 'pro', 'expert'] }).notNull().default('regular'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 });
 
@@ -112,7 +114,7 @@ export const document = pgTable(
     createdAt: timestamp('createdAt').notNull(),
     title: text('title').notNull(),
     content: text('content'),
-    kind: varchar('text', { enum: ['text', 'code', 'image', 'sheet'] })
+    kind: varchar('text', { enum: ['text', 'code', 'image', 'sheet', 'mindmap'] })
       .notNull()
       .default('text'),
     userId: uuid('userId')

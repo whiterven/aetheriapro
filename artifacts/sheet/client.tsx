@@ -1,3 +1,4 @@
+//artifacts/sheet/client.tsx
 import { Artifact } from '@/components/create-artifact';
 import {
   CopyIcon,

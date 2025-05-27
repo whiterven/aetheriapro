@@ -40,7 +40,7 @@ import {
 } from '@/components/ui/sidebar';
 import { LoaderIcon } from './icons';
 import { toast } from './toast';
-import { guestRegex } from '@/lib/constants';
+// import { guestRegex } from '@/lib/constants';
 
 export function SidebarUserNav({ user }: { user: User }) {
   const router = useRouter();

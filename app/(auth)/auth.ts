@@ -76,7 +76,7 @@ export const {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          type: 'regular' as const
+          type: user.type || 'regular' as const
         };
         console.log('Auth: Returning user:', userResult);
         return userResult;
