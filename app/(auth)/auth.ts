@@ -43,7 +43,9 @@ export const {
   ...authConfig,
   providers: [
     Credentials({
-      credentials: {},      async authorize({ email, password }: any) {
+      id: 'credentials',
+      credentials: {},
+      async authorize({ email, password }: any) {
         console.log('Auth: Starting authorization for email:', email);
         const users = await getUser(email);
 
@@ -75,12 +77,20 @@ export const {
         return userResult;
       },
     }),
+    // Guest provider should be tried last
     Credentials({
       id: 'guest',
+      name: 'Guest',
       credentials: {},
       async authorize() {
-        const [guestUser] = await createGuestUser();
-        return { ...guestUser, type: 'guest' };
+        try {
+          const [guestUser] = await createGuestUser();
+          if (!guestUser) throw new Error('Failed to create guest user');
+          return { ...guestUser, type: 'guest' as const };
+        } catch (error) {
+          console.error('Guest auth error:', error);
+          return null;
+        }
       },
     }),
   ],

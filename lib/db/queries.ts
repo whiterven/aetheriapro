@@ -85,18 +85,27 @@ export async function createUser(
 }
 
 export async function createGuestUser() {
-  const email = `guest-${Date.now()}`;
+  const email = `guest-${Date.now()}@aetheria.local`;
   const password = generateHashedPassword(generateUUID());
 
   try {
-    return await db.insert(user).values({ email, password }).returning({
+    return await db.insert(user).values({
+      email,
+      password,
+      firstName: 'Guest',
+      lastName: 'User',
+      createdAt: new Date() // Explicitly set createdAt even though it has a default
+    }).returning({
       id: user.id,
       email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName
     });
   } catch (error) {
+    console.error('Failed to create guest user:', error);
     throw new ChatSDKError(
       'bad_request:database',
-      'Failed to create guest user',
+      'Failed to create guest user'
     );
   }
 }
