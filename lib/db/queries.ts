@@ -557,3 +557,30 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
     );
   }
 }
+
+export async function getUserStats(userId: string) {
+  try {
+    const [userResult] = await db
+      .select({
+        createdAt: user.id,
+        totalChats: count(chat.id),
+        totalMessages: count(message.id),
+      })
+      .from(user)
+      .leftJoin(chat, eq(chat.userId, user.id))
+      .leftJoin(message, eq(message.chatId, chat.id))
+      .where(eq(user.id, userId))
+      .groupBy(user.id);
+
+    return {
+      createdAt: userResult?.createdAt ?? new Date(),
+      totalChats: Number(userResult?.totalChats ?? 0),
+      totalMessages: Number(userResult?.totalMessages ?? 0),
+    };
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get user statistics',
+    );
+  }
+}

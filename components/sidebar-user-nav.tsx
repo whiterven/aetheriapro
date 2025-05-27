@@ -47,7 +47,12 @@ export function SidebarUserNav({ user }: { user: User }) {
   const { isMobile } = useSidebar();
 
   const isGuest = guestRegex.test(data?.user?.email ?? '');
-  const displayName = isGuest ? 'Guest' : user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email;
+  // Only show name if both first and last name are present
+  const displayName = isGuest 
+    ? 'Guest' 
+    : user?.firstName && user?.lastName 
+      ? `${user.firstName} ${user.lastName}` 
+      : user?.email?.split('@')[0] || 'User';
 
   return (
     <SidebarMenu>
@@ -76,17 +81,22 @@ export function SidebarUserNav({ user }: { user: User }) {
                 size="lg" 
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
-                <Avatar className="h-8 w-8 rounded-lg">
+                <Avatar className="h-8 w-8 rounded-lg bg-muted">
                   <AvatarImage 
                     src={user?.email ? `https://avatar.vercel.sh/${user.email}` : undefined} 
-                    alt={displayName || 'User'} 
+                    alt={displayName} 
                   />
                   <AvatarFallback className="rounded-lg">
-                    {displayName?.slice(0, 2)?.toUpperCase() || 'CN'}
+                    {user?.firstName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold" data-testid="user-email">{displayName || 'User'}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="truncate font-semibold" data-testid="user-email">
+                      {displayName}
+                    </span>
+                    {!isGuest && <BadgeCheck className="h-4 w-4 text-primary" />}
+                  </div>
                   <span className="truncate text-xs text-muted-foreground">
                     {!isGuest && user?.email}
                   </span>
