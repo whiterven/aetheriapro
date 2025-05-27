@@ -8,6 +8,20 @@
       "when": 1748293722471,
       "tag": "0000_wooden_sugar_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1748336794295,
+      "tag": "0001_fair_whistler",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1748337648404,
+      "tag": "0002_odd_yellow_claw",
+      "breakpoints": true
     }
   ]
 }

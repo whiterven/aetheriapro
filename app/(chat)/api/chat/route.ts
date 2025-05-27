@@ -106,12 +106,21 @@ export async function POST(request: Request) {
         // Continue with default title
       }
 
-      await saveChat({
-        id,
-        userId: session.user.id,
-        title,
-        visibility: selectedVisibilityType,
-      });
+      try {
+        await saveChat({
+          id,
+          userId: session.user.id,
+          title,
+          visibility: selectedVisibilityType,
+        });
+      } catch (error) {
+        console.error('Failed to create chat:', error);
+        if (error instanceof ChatSDKError && error.message === 'User not found') {
+          // Specific error for missing user, which should not happen but handling just in case
+          return new ChatSDKError('bad_request:database', 'Invalid user').toResponse();
+        }
+        return new ChatSDKError('bad_request:database', 'Failed to create chat').toResponse();
+      }
     } else {
       if (chat.userId !== session.user.id) {
         return new ChatSDKError('forbidden:chat').toResponse();

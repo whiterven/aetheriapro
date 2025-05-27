@@ -1,14 +1,15 @@
 import { compare } from 'bcrypt-ts';
 import NextAuth, { type DefaultSession } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { createGuestUser, getUser } from '@/lib/db/queries';
+import { getUser } from '@/lib/db/queries';
 import { authConfig } from './auth.config';
 import { DUMMY_PASSWORD } from '@/lib/constants';
 import type { DefaultJWT } from 'next-auth/jwt';
 
-export type UserType = 'guest' | 'regular';
+export type UserType = 'regular';
 
-declare module 'next-auth' {  interface Session extends DefaultSession {
+declare module 'next-auth' {
+  interface Session extends DefaultSession {
     user: {
       id: string;
       type: UserType;
@@ -26,7 +27,8 @@ declare module 'next-auth' {  interface Session extends DefaultSession {
   }
 }
 
-declare module 'next-auth/jwt' {  interface JWT extends DefaultJWT {
+declare module 'next-auth/jwt' {
+  interface JWT extends DefaultJWT {
     id: string;
     type: UserType;
     firstName?: string | null;
@@ -62,8 +64,11 @@ export const {
           console.log('Auth: User has no password');
           await compare(password, DUMMY_PASSWORD);
           return null;
-        }        const passwordsMatch = await compare(password, user.password);
+        }
+
+        const passwordsMatch = await compare(password, user.password);
         console.log('Auth: Password match result:', passwordsMatch);
+        
         if (!passwordsMatch) return null;
 
         const userResult = {
@@ -77,40 +82,25 @@ export const {
         return userResult;
       },
     }),
-    // Guest provider should be tried last
-    Credentials({
-      id: 'guest',
-      name: 'Guest',
-      credentials: {},
-      async authorize() {
-        try {
-          const [guestUser] = await createGuestUser();
-          if (!guestUser) throw new Error('Failed to create guest user');
-          return { ...guestUser, type: 'guest' as const };
-        } catch (error) {
-          console.error('Guest auth error:', error);
-          return null;
-        }
-      },
-    }),
   ],
-  callbacks: {    async jwt({ token, user }) {
+  callbacks: {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id as string;
         token.type = user.type;
         token.firstName = user.firstName;
         token.lastName = user.lastName;
       }
-
       return token;
-    },    async session({ session, token }) {
+    },
+
+    async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
         session.user.type = token.type;
         session.user.firstName = token.firstName;
         session.user.lastName = token.lastName;
       }
-
       return session;
     },
   },

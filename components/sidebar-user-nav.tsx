@@ -3,6 +3,7 @@
 import {
   BadgeCheck,
   Bell,
+  ChevronUp,
   ChevronsUpDown,
   CreditCard,
   LogOut,
@@ -11,9 +12,11 @@ import {
   Sun,
   UserCircle
 } from 'lucide-react';
+import Image from 'next/image';
 import type { User } from 'next-auth';
 import { signOut, useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
 
 import {
   Avatar,
@@ -35,9 +38,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { useRouter } from 'next/navigation';
-import { toast } from './toast';
 import { LoaderIcon } from './icons';
+import { toast } from './toast';
 import { guestRegex } from '@/lib/constants';
 
 export function SidebarUserNav({ user }: { user: User }) {
@@ -46,14 +48,51 @@ export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
   const { isMobile } = useSidebar();
 
-  const isGuest = guestRegex.test(data?.user?.email ?? '');
-  // Only show name if both first and last name are present
-  const displayName = isGuest 
-    ? 'Guest' 
-    : user?.firstName && user?.lastName 
-      ? `${user.firstName} ${user.lastName}` 
-      : user?.email?.split('@')[0] || 'User';
+  // For non-authenticated users, show the original simple design
+  if (!data?.user) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton 
+                className="data-[state=open]:bg-sidebar-accent bg-background data-[state=open]:text-sidebar-accent-foreground h-10 justify-between"
+              >
+                <div className="flex flex-row gap-2">
+                  <UserCircle className="size-6" />
+                  <span>Sign In</span>
+                </div>
+                <ChevronUp className="ml-auto" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              data-testid="user-nav-menu"
+              side="top"
+              className="w-[--radix-popper-anchor-width]"
+            >
+              <DropdownMenuItem
+                data-testid="user-nav-item-theme"
+                className="cursor-pointer"
+                onSelect={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              >
+                {`Toggle ${theme === 'light' ? 'dark' : 'light'} mode`}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                data-testid="user-nav-item-auth"
+                className="cursor-pointer"
+                onClick={() => router.push('/login')}
+              >
+                Login to your account
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
 
+  // For authenticated users, show the enhanced shadcn design
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -83,22 +122,23 @@ export function SidebarUserNav({ user }: { user: User }) {
               >
                 <Avatar className="h-8 w-8 rounded-lg bg-muted">
                   <AvatarImage 
-                    src={user?.email ? `https://avatar.vercel.sh/${user.email}` : undefined} 
-                    alt={displayName} 
+                    src={`https://avatar.vercel.sh/${user.email}`}
+                    alt={user.email ?? 'User Avatar'}
                   />
                   <AvatarFallback className="rounded-lg">
-                    {user?.firstName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+                    {user.email?.[0]?.toUpperCase() || 'U'}
                   </AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                </Avatar>                <div className="grid flex-1 text-left text-sm leading-tight">
                   <div className="flex items-center gap-1">
                     <span className="truncate font-semibold" data-testid="user-email">
-                      {displayName}
+                      {user.firstName && user.lastName 
+                        ? `${user.firstName} ${user.lastName}`
+                        : user.email?.split('@')[0]}
                     </span>
-                    {!isGuest && <BadgeCheck className="h-4 w-4 text-primary" />}
+                    <BadgeCheck className="h-4 w-4 text-primary" />
                   </div>
                   <span className="truncate text-xs text-muted-foreground">
-                    {!isGuest && user?.email}
+                    {user.email}
                   </span>
                 </div>
                 <ChevronsUpDown className="ml-auto size-4" />
@@ -113,65 +153,60 @@ export function SidebarUserNav({ user }: { user: User }) {
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">  
+              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage 
-                    src={user?.email ? `https://avatar.vercel.sh/${user.email}` : undefined}
-                    alt={displayName || 'User'} 
+                    src={`https://avatar.vercel.sh/${user.email}`}
+                    alt={user.email ?? 'User Avatar'}
                   />
                   <AvatarFallback className="rounded-lg">
-                    {displayName?.slice(0, 2)?.toUpperCase() || 'CN'}
+                    {user.email?.[0]?.toUpperCase() || 'U'}
                   </AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{displayName || 'User'}</span>
-                  <span className="truncate text-xs">{!isGuest && user?.email}</span>
+                </Avatar>                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">
+                    {user.firstName && user.lastName 
+                      ? `${user.firstName} ${user.lastName}`
+                      : user.email?.split('@')[0]}
+                  </span>
+                  <span className="truncate text-xs">{user.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {!isGuest && (
-              <DropdownMenuGroup>
-                <DropdownMenuItem className="gap-2" onClick={() => router.push('/upgrade')}>
-                  <Sparkles className="size-4" />
-                  <span>Upgrade to Pro</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  className="gap-2" 
-                  onClick={() => router.push('/account')}
-                >
-                  <UserCircle className="size-4" />
-                  <div className="grid flex-1">
-                    <span className="font-medium">Manage Account</span>
-                    <span className="text-xs text-muted-foreground">Profile settings and preferences</span>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="flex flex-row gap-2 px-2 py-1.5"
-                  onClick={() => router.push('/billing')}
-                >
-                  <CreditCard className="size-4" />
-                  <div className="grid flex-1">
-                    <span className="font-medium">Billing</span>
-                    <span className="text-xs text-muted-foreground">Manage your subscription plan</span>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="flex flex-row gap-2 px-2 py-1.5"
-                  onClick={() => router.push('/notifications')}
-                >
-                  <Bell className="size-4" />
-                  <div className="grid flex-1">
-                    <span className="font-medium">Notifications</span>
-                    <span className="text-xs text-muted-foreground">Configure notification settings</span>
-                  </div>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            )}
+            <DropdownMenuGroup>
+              <DropdownMenuItem className="gap-2" onClick={() => router.push('/upgrade')}>
+                <Sparkles className="size-4" />
+                <span>Upgrade to Pro</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem 
+                className="gap-2" 
+                onClick={() => router.push('/account')}
+              >
+                <BadgeCheck className="size-4" />
+                <span>Account</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="gap-2"
+                onClick={() => router.push('/billing')}
+              >
+                <CreditCard className="size-4" />
+                <span>Billing</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="gap-2"
+                onClick={() => router.push('/notifications')}
+              >
+                <Bell className="size-4" />
+                <span>Notifications</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               data-testid="user-nav-item-theme"
-              className="flex flex-row gap-2 px-2 py-1.5 cursor-pointer"
+              className="gap-2"
               onSelect={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
               {theme === 'light' ? (
@@ -179,15 +214,12 @@ export function SidebarUserNav({ user }: { user: User }) {
               ) : (
                 <Sun className="size-4" />
               )}
-              <div className="grid flex-1">
-                <span className="font-medium">{`${theme === 'light' ? 'Dark' : 'Light'} mode`}</span>
-                <span className="text-xs text-muted-foreground">Change the app appearance</span>
-              </div>
+              <span>{`Toggle ${theme === 'light' ? 'dark' : 'light'} mode`}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               data-testid="user-nav-item-auth"
-              className="flex flex-row gap-2 px-2 py-1.5 cursor-pointer"
+              className="gap-2"
               onClick={() => {
                 if (status === 'loading') {
                   toast({
@@ -196,23 +228,13 @@ export function SidebarUserNav({ user }: { user: User }) {
                   });
                   return;
                 }
-
-                if (isGuest) {
-                  router.push('/login');
-                } else {
-                  signOut({
-                    redirectTo: '/',
-                  });
-                }
+                signOut({
+                  redirectTo: '/',
+                });
               }}
             >
               <LogOut className="size-4" />
-              <div className="grid flex-1">
-                <span className="font-medium">{isGuest ? 'Login' : 'Sign out'}</span>
-                <span className="text-xs text-muted-foreground">
-                  {isGuest ? 'Sign in to your account' : 'End your current session'}
-                </span>
-              </div>
+              <span>Sign out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -1,19 +1,20 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { guestRegex, isDevelopmentEnvironment } from './lib/constants';
+import { isDevelopmentEnvironment } from './lib/constants';
+
+// Add paths that don't require authentication
+const PUBLIC_PATHS = ['/login', '/register', '/api/auth'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  /*
-   * Playwright starts the dev server and requires a 200 status to
-   * begin the tests, so this ensures that the tests can start
-   */
+  // Allow Playwright health check
   if (pathname.startsWith('/ping')) {
     return new Response('pong', { status: 200 });
   }
 
-  if (pathname.startsWith('/api/auth')) {
+  // Allow authentication paths
+  if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
     return NextResponse.next();
   }
 
@@ -23,40 +24,26 @@ export async function middleware(request: NextRequest) {
     secureCookie: !isDevelopmentEnvironment,
   });
 
+  // Redirect to login if not authenticated and trying to access protected routes
   if (!token) {
-    // Get the base URL from the request
-    const baseUrl = new URL(request.url).origin;
-    const currentPath = new URL(request.url).pathname;
-    const redirectUrl = encodeURIComponent(`${baseUrl}${currentPath}`);
-
-    return NextResponse.redirect(
-      new URL(`/api/auth/guest?redirectUrl=${redirectUrl}`, baseUrl),
-    );
+    const url = new URL('/login', request.url);
+    url.searchParams.set('callback', encodeURIComponent(request.url));
+    return NextResponse.redirect(url);
   }
 
-  const isGuest = guestRegex.test(token?.email ?? '');
-
-  if (token && !isGuest && ['/login', '/register'].includes(pathname)) {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
-
+  // Allow access to protected routes for authenticated users
   return NextResponse.next();
 }
 
+// Update the matcher to include all routes except static files
 export const config = {
   matcher: [
     '/',
-    '/chat/:id',
+    '/chat/:path*',
     '/api/:path*',
     '/login',
     '/register',
-
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     */
+    '/account/:path*',
     '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
   ],
 };

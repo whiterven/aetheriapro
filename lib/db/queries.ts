@@ -121,15 +121,39 @@ export async function saveChat({
   title: string;
   visibility: VisibilityType;
 }) {
-  try {
-    return await db.insert(chat).values({
+  try {    
+    console.log('Attempting to save chat with params:', { id, userId, title, visibility });
+    
+    // First verify if the user exists
+    const [userExists] = await db.select({ id: user.id })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+      
+    if (!userExists) {
+      console.error('Failed to save chat: User does not exist:', userId);
+      throw new ChatSDKError('bad_request:database', 'User not found');
+    }
+
+    const result = await db.insert(chat).values({
       id,
-      createdAt: new Date(),
       userId,
       title,
       visibility,
-    });
+    }).returning();
+    console.log('Chat saved successfully:', result);
+    return result;
   } catch (error) {
+    console.error('Failed to save chat. Full error:', {
+      error,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      errorStack: error instanceof Error ? error.stack : undefined,
+      params: { id, userId, title, visibility }
+    });
+    
+    if (error instanceof ChatSDKError) {
+      throw error;
+    }
     throw new ChatSDKError('bad_request:database', 'Failed to save chat');
   }
 }
@@ -591,5 +615,18 @@ export async function getUserStats(userId: string) {
       'bad_request:database',
       'Failed to get user statistics',
     );
+  }
+}
+
+export async function verifyUserExists(userId: string): Promise<boolean> {
+  try {
+    const [userExists] = await db.select({ id: user.id })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+    return Boolean(userExists);
+  } catch (error) {
+    console.error('Error verifying user existence:', error);
+    return false;
   }
 }

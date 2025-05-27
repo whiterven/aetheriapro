@@ -1,4 +1,3 @@
-import { signIn } from '@/app/(auth)/auth';
 import { isDevelopmentEnvironment } from '@/lib/constants';
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
@@ -17,5 +16,9 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  return signIn('guest', { redirect: true, redirectTo: redirectUrl });
+  // Instead of creating a guest user, redirect to login with a callback URL
+  const loginUrl = new URL('/login', request.url);
+  loginUrl.searchParams.set('callback', redirectUrl);
+
+  return NextResponse.redirect(loginUrl);
 }
