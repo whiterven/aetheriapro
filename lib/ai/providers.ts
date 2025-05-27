@@ -2,6 +2,7 @@ import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
+  type LanguageModel,
 } from 'ai';
 import { xai } from '@ai-sdk/xai';
 import { groq } from '@ai-sdk/groq';
@@ -15,51 +16,106 @@ import {
   titleModel,
 } from './models.test';
 
+// Enhance model with reasoning and artifact capabilities
+const enhanceModel = (
+  model: LanguageModel, 
+  options: { 
+    reasoning?: boolean;
+    artifacts?: boolean;
+  } = {}
+) => {
+  let enhancedModel = model;
+  
+  // Add reasoning capabilities for supported models
+  if (options.reasoning) {
+    enhancedModel = wrapLanguageModel({
+      model,
+      middleware: extractReasoningMiddleware({ 
+        tagName: 'think',
+        separator: options.artifacts ? '\n\nThinking about artifact generation:\n' : undefined
+      }),
+    });
+  }
+
+  return enhancedModel;
+};
+
 export const myProvider = isTestEnvironment
   ? customProvider({
       languageModels: {
         'chat-model': chatModel,
         'chat-model-reasoning': reasoningModel,
-        'llama-3.1-8b-instant': chatModel, // Use test stub for test env
-        'deepseek-r1-distill-llama-70b': chatModel, // Use test stub for test env
-        'gemini-2.0-flash': chatModel, // Use test stub for test env
-        'gemini-1.5-flash': chatModel, // Use test stub for test env
-        'gemini-2.5-pro-preview-05-06': chatModel, // Use test stub for test env
-        'gemini-2.5-flash-preview-04-17': chatModel, // Use test stub for test env
-        'gemini-2.5-pro-exp-03-25': chatModel, // Use test stub for test env
-        'claude-3-haiku-20240307': chatModel, // Use test stub for test env
-        'claude-4-opus-20250514': chatModel, // Use test stub for test env
-        'claude-4-sonnet-20250514': chatModel, // Use test stub for test env
-        'claude-3-7-sonnet-20250219': chatModel, // Use test stub for test env
-        'claude-3-5-sonnet-20241022': chatModel, // Use test stub for test env
+        'deepseek-r1-distill-llama-70b': chatModel,
+        'meta-llama/llama-4-scout-17b-16e-instruct': chatModel,
+        'gemini-2.0-flash': chatModel,
+        'gemini-2.5-pro-preview-05-06': chatModel,
+        'gemini-2.5-flash-preview-04-17': chatModel,
+        'gemini-2.5-pro-exp-03-25': chatModel,
+        'claude-3-haiku-20240307': chatModel,
+        'claude-4-opus-20250514': chatModel,
+        'claude-4-sonnet-20250514': chatModel,
+        'claude-3-7-sonnet-20250219': chatModel,
+        'claude-3-5-sonnet-20241022': chatModel,
         'title-model': titleModel,
         'artifact-model': artifactModel,
       },
     })
   : customProvider({
       languageModels: {
-        'chat-model': xai('grok-2-vision-1212'),
-        'chat-model-reasoning': wrapLanguageModel({
-          model: xai('grok-3-mini-beta'),
-          middleware: extractReasoningMiddleware({ tagName: 'think' }),
+        // Primary xAI models with reasoning and artifact capabilities
+        'chat-model': enhanceModel(xai('grok-2-vision-1212'), { artifacts: true }),
+        'chat-model-reasoning': enhanceModel(xai('grok-3-mini-beta'), { 
+          reasoning: true, 
+          artifacts: true 
         }),
-        'llama-3.1-8b-instant': groq('llama-3.1-8b-instant'),
-        'deepseek-r1-distill-llama-70b': groq('deepseek-r1-distill-llama-70b'),
-        'gemini-2.0-flash': google('gemini-2.0-flash'),
-        'gemini-1.5-flash': google('gemini-1.5-flash'),
-        'gemini-2.5-pro-preview-05-06': google('gemini-2.5-pro-preview-05-06'),
-        'gemini-2.5-flash-preview-04-17': google('gemini-2.5-flash-preview-04-17'),
-        'gemini-2.5-pro-exp-03-25': google('gemini-2.5-pro-exp-03-25'),
-        'gemini-2.0-flash-preview-image-generation': google('gemini-2.0-flash-preview-image-generation'), // Configured as language model
-        'claude-3-haiku-20240307': anthropic('claude-3-haiku-20240307'),
-        'claude-4-opus-20250514': anthropic('claude-4-opus-20250514'),
-        'claude-4-sonnet-20250514': anthropic('claude-4-sonnet-20250514'),
-        'claude-3-7-sonnet-20250219': anthropic('claude-3-7-sonnet-20250219'),
-        'claude-3-5-sonnet-20241022': anthropic('claude-3-5-sonnet-20241022'),
-        'title-model': xai('grok-2-1212'),
-        'artifact-model': xai('grok-2-1212'),
-      },
-      imageModels: {
+
+        // Groq models optimized for performance and reasoning
+        'deepseek-r1-distill-llama-70b': enhanceModel(groq('deepseek-r1-distill-llama-70b')),
+        'meta-llama/llama-4-scout-17b-16e-instruct': enhanceModel(
+          groq('meta-llama/llama-4-scout-17b-16e-instruct'), 
+          { reasoning: true, artifacts: true }
+        ),
+
+        // Google models with reasoning for pro versions
+        'gemini-2.0-flash': enhanceModel(google('gemini-2.0-flash'), { artifacts: true }),
+        'gemini-2.5-pro-preview-05-06': enhanceModel(google('gemini-2.5-pro-preview-05-06'), {
+          reasoning: true,
+          artifacts: true
+        }),
+        'gemini-2.5-flash-preview-04-17': enhanceModel(google('gemini-2.5-flash-preview-04-17'), {
+          artifacts: true
+        }),
+        'gemini-2.5-pro-exp-03-25': enhanceModel(google('gemini-2.5-pro-exp-03-25'), {
+          reasoning: true,
+          artifacts: true
+        }),
+
+        // Anthropic models with enhanced capabilities for newer versions
+        'claude-3-haiku-20240307': enhanceModel(anthropic('claude-3-haiku-20240307'), {
+          artifacts: true
+        }),
+        'claude-4-opus-20250514': enhanceModel(anthropic('claude-4-opus-20250514'), {
+          reasoning: true,
+          artifacts: true
+        }),
+        'claude-4-sonnet-20250514': enhanceModel(anthropic('claude-4-sonnet-20250514'), {
+          reasoning: true,
+          artifacts: true
+        }),
+        'claude-3-7-sonnet-20250219': enhanceModel(anthropic('claude-3-7-sonnet-20250219'), {
+          reasoning: true,
+          artifacts: true
+        }),
+        'claude-3-5-sonnet-20241022': enhanceModel(anthropic('claude-3-5-sonnet-20241022'), {
+          artifacts: true
+        }),
+
+        // Specialized models
+        'title-model': enhanceModel(xai('grok-2-1212')),
+        'artifact-model': enhanceModel(xai('grok-2-1212'), { artifacts: true }),
+      },      imageModels: {
         'small-model': xai.image('grok-2-image'),
+        // Keep Gemini image generation functionality in languageModels since it uses a unified API
+        // for both text and image generation. Access it through 'gemini-2.0-flash-preview-image-generation'
       },
     });

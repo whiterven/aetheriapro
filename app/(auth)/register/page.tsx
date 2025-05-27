@@ -25,7 +25,6 @@ export default function Page() {
   );
 
   const { update: updateSession } = useSession();
-
   useEffect(() => {
     if (state.status === 'user_exists') {
       toast({ type: 'error', description: 'Account already exists!' });
@@ -43,7 +42,7 @@ export default function Page() {
       updateSession();
       router.push('/'); // Redirect to home (chat) page
     }
-  }, [state]);
+  }, [state.status, router, updateSession]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get('email') as string);

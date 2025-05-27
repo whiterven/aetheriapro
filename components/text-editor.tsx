@@ -71,9 +71,8 @@ function PureEditor({
         editorRef.current.destroy();
         editorRef.current = null;
       }
-    };
-    // NOTE: we only want to run this effect once
-    // eslint-disable-next-line
+    };    // Dependencies are intentionally empty since we only want to create the editor once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

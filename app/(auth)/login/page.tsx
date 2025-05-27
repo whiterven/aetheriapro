@@ -25,7 +25,6 @@ export default function Page() {
   );
 
   const { update: updateSession } = useSession();
-
   useEffect(() => {
     if (state.status === 'failed') {
       toast({
@@ -42,7 +41,7 @@ export default function Page() {
       updateSession();
       router.push('/'); // Redirect to home (chat) page
     }
-  }, [state.status]);
+  }, [state.status, router, updateSession]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get('email') as string);

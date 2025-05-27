@@ -15,6 +15,7 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
+import { useRouter } from 'next/navigation';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
@@ -59,47 +60,40 @@ function PureMultimodalInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+  const router = useRouter();
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      adjustHeight();
-    }
-  }, []);
+  // Store input in localStorage to persist across login redirect
+  const [localStorageInput, setLocalStorageInput] = useLocalStorage<string>(
+    'chat-input',
+    '',
+  );
 
-  const adjustHeight = () => {
+  const adjustHeight = useCallback(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
     }
-  };
+  }, []);
 
-  const resetHeight = () => {
+  const resetHeight = useCallback(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = '98px';
     }
-  };
-
-  const [localStorageInput, setLocalStorageInput] = useLocalStorage(
-    'input',
-    '',
-  );
-
-  useEffect(() => {
-    if (textareaRef.current) {
-      const domValue = textareaRef.current.value;
-      // Prefer DOM value over localStorage to handle hydration
-      const finalValue = domValue || localStorageInput || '';
-      setInput(finalValue);
-      adjustHeight();
-    }
-    // Only run once after hydration
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    setLocalStorageInput(input);
-  }, [input, setLocalStorageInput]);
+    if (textareaRef.current) {
+      adjustHeight();
+    }
+  }, [adjustHeight]);
+
+  useEffect(() => {
+    // Restore input from localStorage if exists
+    if (localStorageInput) {
+      setInput(localStorageInput);
+      setLocalStorageInput('');
+    }
+  }, [localStorageInput, setInput, setLocalStorageInput]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
@@ -109,27 +103,49 @@ function PureMultimodalInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
 
-  const submitForm = useCallback(() => {
-    window.history.replaceState({}, '', `/chat/${chatId}`);
+  const submitForm = useCallback(async () => {
+    // Save current input before checking auth
+    if (input.trim()) {
+      setLocalStorageInput(input);
+    }
 
-    handleSubmit(undefined, {
-      experimental_attachments: attachments,
-    });
+    try {
+      const authResponse = await fetch('/api/auth/session');
+      if (!authResponse.ok || authResponse.status === 401) {
+        // User not authenticated, redirect to login
+        const loginUrl = new URL('/login', window.location.origin);
+        loginUrl.searchParams.set('callback', encodeURIComponent(window.location.href));
+        router.push(loginUrl.toString());
+        return;
+      }
 
-    setAttachments([]);
-    setLocalStorageInput('');
-    resetHeight();
+      // User is authenticated, proceed with submission
+      window.history.replaceState({}, '', `/chat/${chatId}`);
+      handleSubmit(undefined, {
+        experimental_attachments: attachments,
+      });
 
-    if (width && width > 768) {
-      textareaRef.current?.focus();
+      setAttachments([]);
+      setLocalStorageInput(''); // Clear stored input after successful submit
+      resetHeight();
+
+      if (width && width > 768) {
+        textareaRef.current?.focus();
+      }
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+      toast.error('Unable to send message. Please try again.');
     }
   }, [
+    input,
     attachments,
     handleSubmit,
     setAttachments,
     setLocalStorageInput,
+    resetHeight,
     width,
     chatId,
+    router
   ]);
 
   const uploadFile = async (file: File) => {
@@ -186,7 +202,6 @@ function PureMultimodalInput({
   );
 
   const { isAtBottom, scrollToBottom } = useScrollToBottom();
-
   useEffect(() => {
     if (status === 'submitted') {
       scrollToBottom();

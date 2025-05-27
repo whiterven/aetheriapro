@@ -77,8 +77,7 @@ export function AccountForm({ user }: { user: User }) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
+        <div className="flex items-center gap-4">          <Avatar className="size-16">
             <AvatarImage 
               src={user.email ? `https://avatar.vercel.sh/${user.email}` : undefined}
               alt={displayName || 'User'} 
@@ -131,9 +130,8 @@ export function AccountForm({ user }: { user: User }) {
                 type="email"
                 {...form.register('email')}
                 disabled={true}
-              />
-              {!user.email?.includes('guest-') && (
-                <BadgeCheck className="h-5 w-5 text-primary" />
+              />              {!user.email?.includes('guest-') && (
+                <BadgeCheck className="size-5 text-primary" />
               )}
             </div>
             {form.formState.errors.email && (

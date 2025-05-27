@@ -3,7 +3,7 @@ import { useSession } from 'next-auth/react';
 
 export const Greeting = () => {
   const { data: session } = useSession();
-  const isGuest = !session?.user || session.user.type === 'guest';
+  const isGuest = !session?.user;
   const firstName = session?.user?.firstName;
 
   return (
