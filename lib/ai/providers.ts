@@ -15,6 +15,7 @@ import {
   reasoningModel,
   titleModel,
 } from './models.test';
+import { openai } from '@ai-sdk/openai';
 
 // Enhance model with reasoning and artifact capabilities
 const enhanceModel = (
@@ -58,6 +59,16 @@ export const myProvider = isTestEnvironment
         'claude-3-5-sonnet-20241022': chatModel,
         'title-model': titleModel,
         'artifact-model': artifactModel,
+        'gpt-4.1': openai('gpt-4.1'),
+        'gpt-4.1-mini': openai('gpt-4.1-mini'),
+        'gpt-4.1-nano': openai('gpt-4.1-nano'),
+        'gpt-4o': openai('gpt-4o'),
+        'gpt-4o-mini': openai('gpt-4o-mini'),
+        'gpt-4o-audio-preview': openai('gpt-4o-audio-preview'),
+        'gpt-4o-mini-web': openai.responses('gpt-4o-mini'),
+      },
+      imageModels: {
+        'small-model': xai.image('grok-2-image'),
       },
     })
   : customProvider({
@@ -91,9 +102,6 @@ export const myProvider = isTestEnvironment
         }),
 
         // Anthropic models with enhanced capabilities for newer versions
-        'claude-3-haiku-20240307': enhanceModel(anthropic('claude-3-haiku-20240307'), {
-          artifacts: true
-        }),
         'claude-4-opus-20250514': enhanceModel(anthropic('claude-4-opus-20250514'), {
           reasoning: true,
           artifacts: true
@@ -113,9 +121,15 @@ export const myProvider = isTestEnvironment
         // Specialized models
         'title-model': enhanceModel(xai('grok-2-1212')),
         'artifact-model': enhanceModel(xai('grok-2-1212'), { artifacts: true }),
-      },      imageModels: {
+        'gpt-4.1': openai('gpt-4.1'),
+        'gpt-4.1-mini': openai('gpt-4.1-mini'),
+        'gpt-4.1-nano': openai('gpt-4.1-nano'),
+        'gpt-4o': openai('gpt-4o'),
+        'gpt-4o-mini': openai('gpt-4o-mini'),
+        'gpt-4o-audio-preview': openai('gpt-4o-audio-preview'),
+        'gpt-4o-mini-web': openai.responses('gpt-4o-mini'),
+      },
+      imageModels: {
         'small-model': xai.image('grok-2-image'),
-        // Keep Gemini image generation functionality in languageModels since it uses a unified API
-        // for both text and image generation. Access it through 'gemini-2.0-flash-preview-image-generation'
       },
     });

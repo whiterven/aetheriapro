@@ -7,6 +7,7 @@ import {
   PlayIcon,
   RedoIcon,
   UndoIcon,
+  EyeIcon,
 } from '@/components/icons';
 import { toast } from 'sonner';
 import { generateUUID } from '@/lib/utils';
@@ -15,6 +16,10 @@ import {
   ConsoleOutput,
   ConsoleOutputContent,
 } from '@/components/console';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const OUTPUT_HANDLERS = {
   matplotlib: `
@@ -64,15 +69,17 @@ function detectRequiredHandlers(code: string): string[] {
 
 interface Metadata {
   outputs: Array<ConsoleOutput>;
+  language: 'python' | 'javascript' | 'typescript' | 'html' | 'css';
 }
 
 export const codeArtifact = new Artifact<'code', Metadata>({
   kind: 'code',
   description:
-    'Useful for code generation; Code execution is only available for python code.',
+    'Useful for code generation; Supports Python, JavaScript, TypeScript, HTML, and CSS.',
   initialize: async ({ setMetadata }) => {
     setMetadata({
       outputs: [],
+      language: 'python',
     });
   },
   onStreamPart: ({ streamPart, setArtifact }) => {
@@ -91,10 +98,66 @@ export const codeArtifact = new Artifact<'code', Metadata>({
     }
   },
   content: ({ metadata, setMetadata, ...props }) => {
+    const [showPreview, setShowPreview] = useState(false);
+
+    const handleLanguageChange = (value: string) => {
+      setMetadata((metadata) => ({
+        ...metadata,
+        language: value as Metadata['language'],
+      }));
+    };
+
     return (
-      <>
-        <div className="px-1">
-          <CodeEditor {...props} />
+      <div className="flex flex-col h-full">
+        <div className="flex items-center justify-between p-2 border-b">
+          <Select
+            value={metadata?.language}
+            onValueChange={handleLanguageChange}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="python">Python</SelectItem>
+              <SelectItem value="javascript">JavaScript</SelectItem>
+              <SelectItem value="typescript">TypeScript</SelectItem>
+              <SelectItem value="html">HTML</SelectItem>
+              <SelectItem value="css">CSS</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {metadata?.language === 'html' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowPreview(!showPreview)}
+            >
+              <EyeIcon className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+
+        <div className="flex-1 overflow-hidden">
+          {metadata?.language === 'html' && showPreview ? (
+            <Tabs defaultValue="preview" className="h-full">
+              <TabsList>
+                <TabsTrigger value="preview">Preview</TabsTrigger>
+                <TabsTrigger value="code">Code</TabsTrigger>
+              </TabsList>
+              <TabsContent value="preview" className="h-[calc(100%-40px)]">
+                <iframe
+                  srcDoc={props.content}
+                  className="w-full h-full border-0"
+                  sandbox="allow-scripts"
+                />
+              </TabsContent>
+              <TabsContent value="code" className="h-[calc(100%-40px)]">
+                <CodeEditor {...props} language={metadata.language} />
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <CodeEditor {...props} language={metadata?.language} />
+          )}
         </div>
 
         {metadata?.outputs && (
@@ -108,7 +171,7 @@ export const codeArtifact = new Artifact<'code', Metadata>({
             }}
           />
         )}
-      </>
+      </div>
     );
   },
   actions: [
@@ -116,7 +179,12 @@ export const codeArtifact = new Artifact<'code', Metadata>({
       icon: <PlayIcon size={18} />,
       label: 'Run',
       description: 'Execute code',
-      onClick: async ({ content, setMetadata }) => {
+      onClick: async ({ content, setMetadata, metadata }) => {
+        if (metadata?.language !== 'python') {
+          toast.error('Code execution is only available for Python code.');
+          return;
+        }
+
         const runId = generateUUID();
         const outputContent: Array<ConsoleOutputContent> = [];
 
